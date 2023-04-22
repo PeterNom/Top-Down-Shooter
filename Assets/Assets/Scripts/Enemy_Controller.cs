@@ -1,16 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class Enemy_Controller : MonoBehaviour
 {
-    public GameObject Target;
-    public float speed = 0.01f;
+    public GameObject[] Target;
+    public float step = 1.0f;
     public float attack_speed = 2.0f;
 
     private const string In_motion = "In_motion";
     private const string Attacking = "Attacking";
+    private const string Alive = "Alive";
     private Rigidbody2D _rbody;
+    private bool alive = true;
+
     public float time_elapsed= 0.0f;
     public Vector3 pad;
     public Vector3 target;
@@ -19,10 +24,12 @@ public class Enemy_Controller : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        pad = new Vector3(0.8f, 0.0f, 0.0f);
+        pad = new Vector3(0.3f, 0.0f, 0.0f);
         _rbody = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         animator.SetBool(In_motion, true);
+        animator.SetBool(Alive, true);
+        Target = GameObject.FindGameObjectsWithTag("Player");
     }
 
     private void Update()
@@ -32,26 +39,39 @@ public class Enemy_Controller : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        target = Target.transform.position - pad;
-        //target -= pad;
-        // move sprite towards the target location
-        transform.position = Vector2.MoveTowards(transform.position, Target.transform.position - pad, speed);
-
-       
+        if(alive)
+        {
+            target = Target[0].transform.position - pad;
+            // move sprite towards the target location
+            transform.position = Vector2.MoveTowards(transform.position, Target[0].transform.position - pad, step * Time.deltaTime);
+        }              
     }
 
-    private void OnCollisionStay2D(Collision2D collision)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        
-        if (time_elapsed> attack_speed && collision.gameObject.CompareTag("Player"))
+        if (collision.gameObject.CompareTag("Bullet"))
         {
-            Debug.Log("Attack");
+            UnityEngine.Debug.Log("Dead");
+            alive = false;
+            animator.SetBool(Alive, false);
+            Destroy(gameObject,1);
+        }
+        if(collision.gameObject.CompareTag("Player"))
+        {
+            UnityEngine.Debug.Log("Attack");
             animator.SetBool(Attacking, true);
             time_elapsed = 0;
         }
-        else
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        
+        if (collision.gameObject.CompareTag("Player"))
         {
+            UnityEngine.Debug.Log("Attack");
             animator.SetBool(Attacking, false);
+            time_elapsed = 0;
         }
     }
 }
