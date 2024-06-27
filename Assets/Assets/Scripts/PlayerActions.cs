@@ -134,6 +134,34 @@ public partial class @PlayerActions : IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Menu_Map"",
+            ""id"": ""4e8abb89-091e-4280-9771-9ea5b207bed2"",
+            ""actions"": [
+                {
+                    ""name"": ""Pause"",
+                    ""type"": ""Button"",
+                    ""id"": ""31ec5f3e-08ed-4284-a5ee-2294c2e98f1b"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""231160fa-e471-41fd-98c1-634aba4dc1c2"",
+                    ""path"": ""<Keyboard>/p"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Pause"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -143,6 +171,9 @@ public partial class @PlayerActions : IInputActionCollection2, IDisposable
         m_Player_Map_Movement = m_Player_Map.FindAction("Movement", throwIfNotFound: true);
         m_Player_Map_MousePosition = m_Player_Map.FindAction("MousePosition", throwIfNotFound: true);
         m_Player_Map_Fire = m_Player_Map.FindAction("Fire", throwIfNotFound: true);
+        // Menu_Map
+        m_Menu_Map = asset.FindActionMap("Menu_Map", throwIfNotFound: true);
+        m_Menu_Map_Pause = m_Menu_Map.FindAction("Pause", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -247,10 +278,47 @@ public partial class @PlayerActions : IInputActionCollection2, IDisposable
         }
     }
     public Player_MapActions @Player_Map => new Player_MapActions(this);
+
+    // Menu_Map
+    private readonly InputActionMap m_Menu_Map;
+    private IMenu_MapActions m_Menu_MapActionsCallbackInterface;
+    private readonly InputAction m_Menu_Map_Pause;
+    public struct Menu_MapActions
+    {
+        private @PlayerActions m_Wrapper;
+        public Menu_MapActions(@PlayerActions wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Pause => m_Wrapper.m_Menu_Map_Pause;
+        public InputActionMap Get() { return m_Wrapper.m_Menu_Map; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(Menu_MapActions set) { return set.Get(); }
+        public void SetCallbacks(IMenu_MapActions instance)
+        {
+            if (m_Wrapper.m_Menu_MapActionsCallbackInterface != null)
+            {
+                @Pause.started -= m_Wrapper.m_Menu_MapActionsCallbackInterface.OnPause;
+                @Pause.performed -= m_Wrapper.m_Menu_MapActionsCallbackInterface.OnPause;
+                @Pause.canceled -= m_Wrapper.m_Menu_MapActionsCallbackInterface.OnPause;
+            }
+            m_Wrapper.m_Menu_MapActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                @Pause.started += instance.OnPause;
+                @Pause.performed += instance.OnPause;
+                @Pause.canceled += instance.OnPause;
+            }
+        }
+    }
+    public Menu_MapActions @Menu_Map => new Menu_MapActions(this);
     public interface IPlayer_MapActions
     {
         void OnMovement(InputAction.CallbackContext context);
         void OnMousePosition(InputAction.CallbackContext context);
         void OnFire(InputAction.CallbackContext context);
+    }
+    public interface IMenu_MapActions
+    {
+        void OnPause(InputAction.CallbackContext context);
     }
 }
