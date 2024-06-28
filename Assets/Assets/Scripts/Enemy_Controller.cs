@@ -20,6 +20,8 @@ public class Enemy_Controller : MonoBehaviour
     public Vector3 pad;
     public Vector3 target;
 
+    public GameObject gameController;
+
     Animator animator;
     // Start is called before the first frame update
     void Start()
@@ -54,6 +56,7 @@ public class Enemy_Controller : MonoBehaviour
             UnityEngine.Debug.Log("Dead");
             alive = false;
             animator.SetBool(Alive, false);
+            gameController.GetComponent<Game_Controller>().updateScore(10);
             Destroy(gameObject,1);
         }
         if(collision.gameObject.CompareTag("Player"))
@@ -61,6 +64,7 @@ public class Enemy_Controller : MonoBehaviour
             UnityEngine.Debug.Log("Attack");
             animator.SetBool(Attacking, true);
             time_elapsed = 0;
+            gameController.GetComponent<Game_Controller>().updatePlayerHealth(-1);
         }
     }
 
